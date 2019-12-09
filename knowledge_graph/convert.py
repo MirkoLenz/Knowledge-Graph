@@ -3,6 +3,9 @@ ConceptNet CSV Dump: https://github.com/commonsense/conceptnet5/wiki/Downloads
 Source Code: https://github.com/tomkdickinson/conceptnet_neo4j
 Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/import-tool/
 
+NOTE: Currently, URI is exported too which results in duplicate property entries.
+If the terms without the prefix and suffix are unique, one could remove the uri and replace it with the name.
+
 >>> neo4j-admin import --database="concept.db" --nodes "nodes.csv" --relationships "relationships.csv"
 """
 import csv
@@ -94,7 +97,7 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
         print(f"Writing {nodes_csv}")
         writer.writerow(["uri:ID", ":LABEL", "name", "language"])
 
-        for n in nodes_csv:
+        for n in nodes:
             writer.writerow((n.uri, "Concept", n.name, n.language))
 
     with open(relationships_csv, "w") as f:
