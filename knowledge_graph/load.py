@@ -69,11 +69,11 @@ with gzip.open(path, "rt") as f:
                     start=Node(name=start_name, language=start_lang),
                     end=Node(name=end_name, language=end_lang),
                     rel_type=rel_type,
-                    dataset=metadata["dataset"],
-                    license=metadata["license"],
-                    weight=float(metadata["weight"]),
+                    dataset=metadata.get("dataset", ""),
+                    license=metadata.get("license", ""),
+                    weight=float(metadata.get("weight", 1.0)),
                     sources=[
-                        Source(source["contributor"], source["process"])
+                        Source(source.get("contributor", ""), source.get("process", ""))
                         for source in metadata["sources"]
                     ],
                 )
