@@ -45,9 +45,7 @@ class Relationship:
 @click.argument("nodes_csv", default="/var/lib/neo4j/import/nodes.csv")
 @click.argument("relationships_csv", default="/var/lib/neo4j/import/relationships.csv")
 # @click.option("break_after", default=0)
-def run(
-    conceptnet_csv: str, nodes_csv: str, relationships_csv: str, break_after: int
-) -> None:
+def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
     nodes = set()
     relationships = list()
 
