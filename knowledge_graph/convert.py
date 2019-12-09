@@ -44,7 +44,7 @@ class Relationship:
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
 @click.argument("nodes_csv", default="/var/lib/neo4j/import/nodes.csv")
 @click.argument("relationships_csv", default="/var/lib/neo4j/import/relationships.csv")
-@click.option("break_after", default=0)
+# @click.option("break_after", default=0)
 def run(
     conceptnet_csv: str, nodes_csv: str, relationships_csv: str, break_after: int
 ) -> None:
@@ -87,8 +87,8 @@ def run(
                     )
                 )
 
-            if break_after > 0 and i >= break_after:
-                break
+            # if break_after > 0 and i >= break_after:
+            #     break
 
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
