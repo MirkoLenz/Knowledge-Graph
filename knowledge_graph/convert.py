@@ -51,6 +51,7 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
 
     with gzip.open(conceptnet_csv, "rt") as f:
         rows = csv.reader(f, delimiter="\t")
+        print(f"Reading {conceptnet_csv}")
 
         for i, row in enumerate(rows):
             rel_uri = row[1]
@@ -91,7 +92,7 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow([":ID", ":LABEL", "name", "language"])
+        writer.writerow(["uri:ID", ":LABEL", "name", "language"])
 
         for n in nodes_csv:
             writer.writerow((n.uri, "Concept", n.name, n.language))
@@ -100,12 +101,28 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
         writer = csv.writer(f)
         print(f"Writing {relationships_csv}")
         writer.writerow(
-            [":START_ID", ":END_ID", ":TYPE", "dataset", "license", "weight:float"]
+            [
+                ":START_ID",
+                ":END_ID",
+                ":TYPE",
+                "uri",
+                "dataset",
+                "license",
+                "weight:float",
+            ]
         )
 
         for r in relationships:
             writer.writerow(
-                (r.start.uri, r.end.uri, r.rel_type, r.dataset, r.license, r.weight)
+                (
+                    r.start.uri,
+                    r.end.uri,
+                    r.rel_type,
+                    r.uri,
+                    r.dataset,
+                    r.license,
+                    r.weight,
+                )
             )
 
 
