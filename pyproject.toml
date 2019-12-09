@@ -7,6 +7,7 @@ authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 neo4j = "^1.7"
+click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
