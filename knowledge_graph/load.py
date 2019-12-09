@@ -21,6 +21,12 @@ class Node:
 
 
 @dataclass
+class Source:
+    contributor: str
+    process: str
+
+
+@dataclass
 class Relationship:
     start: Node
     end: Node
@@ -28,7 +34,7 @@ class Relationship:
     dataset: str
     license: str
     weight: float
-    sources: List[Dict[str, str]]
+    sources: List[Source]
 
     @property
     def props(self) -> str:
@@ -36,7 +42,8 @@ class Relationship:
             "dataset": self.dataset,
             "license": self.license,
             "weight": self.weight,
-            # "sources": self.sources,
+            "contributors": [source.contributor for source in self.sources],
+            "processes": [source.process for source in self.sources],
         }
 
 
@@ -65,11 +72,14 @@ with gzip.open(path, "rt") as f:
                     dataset=metadata["dataset"],
                     license=metadata["license"],
                     weight=float(metadata["weight"]),
-                    sources=metadata["sources"],
+                    sources=[
+                        Source(source["contributor"], source["process"])
+                        for source in metadata["sources"]
+                    ],
                 )
             )
 
-        break
+        # break
 
 
 def create_relationship(tx, rel):
