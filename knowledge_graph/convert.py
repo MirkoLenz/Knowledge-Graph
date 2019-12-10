@@ -6,8 +6,9 @@ Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/impor
 NOTE: Currently, URI is exported too which results in duplicate property entries.
 If the terms without the prefix and suffix are unique, one could remove the uri and replace it with the name.
 
->>> neo4j-admin import --database="concept.db" --nodes "nodes.csv" --relationships "relationships.csv"
+>>> neo4j-admin import --database "concept.db" --nodes "nodes.csv" --relationships "relationships.csv"
 """
+
 import csv
 from pathlib import Path
 from neo4j import GraphDatabase
@@ -18,11 +19,33 @@ import ast
 import click
 
 
+lang_filter = ["de", "en"]
+
+# POS tags
+# n: NOUN
+# v: VERB
+# a: ADJECTIVE
+# s: ADJECTIVE SATELLITE
+# r: ADVERB
+
+
 @dataclass(frozen=True)
 class Node:
-    uri: str
+    prefix: str
     name: str
     language: str
+    pos: str
+
+    def __init__(self, uri: str):
+        self.prefix, self.language, self.name, self.pos = uri.split("/")[1:5]
+
+    @property
+    def key(self):
+        return "/".join([self.language, self.name, self.pos])
+
+    @property
+    def label(self):
+        return "Concept"
 
 
 @dataclass(frozen=True)
@@ -33,14 +56,29 @@ class Source:
 
 @dataclass(frozen=True)
 class Relationship:
-    uri: str
+    prefix: str
     start: Node
     end: Node
-    rel_type: str
+    name: str
     dataset: str
     license: str
     weight: float
     # sources: List[Source]
+
+    def __init__(self, uri: str, metadata: str, start: Node, end: Node) -> None:
+        self.prefix, self.name = uri.split("/")[1:3]
+        self.start = start
+        self.end = end
+
+        metadata = ast.literal_eval(metadata)
+        self.dataset = metadata.get("dataset")
+        self.license = metadata.get("license")
+        self.weight = float(metadata.get("weight", 1.0))
+
+        # self.sources=[
+        #     Source(source.get("contributor", ""), source.get("process", ""))
+        #     for source in metadata["sources"]
+        # ],
 
 
 @click.command()
@@ -57,75 +95,39 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
         print(f"Reading {conceptnet_csv}")
 
         for i, row in enumerate(rows):
-            rel_uri = row[1]
-            start_uri = row[2]
-            end_uri = row[3]
-            metadata = ast.literal_eval(row[4])
+            start = Node(row[2])
+            end = Node(row[3])
+            rel = Relationship(row[1], row[4], start, end)
 
-            rel_prefix, rel_type = rel_uri.split("/")[1:3]
-            start_prefix, start_lang, start_name = start_uri.split("/")[1:4]
-            end_prefix, end_lang, end_name = end_uri.split("/")[1:4]
-
-            if start_prefix == "c" and end_prefix == "c" and rel_prefix == "r":
-                start_node = Node(uri=start_uri, name=start_name, language=start_lang)
-                end_node = Node(uri=end_uri, name=end_name, language=end_lang)
-
-                nodes.add(start_node)
-                nodes.add(end_node)
-
-                relationships.append(
-                    Relationship(
-                        uri=rel_uri,
-                        start=start_node,
-                        end=end_node,
-                        rel_type=rel_type,
-                        dataset=metadata.get("dataset", ""),
-                        license=metadata.get("license", ""),
-                        weight=float(metadata.get("weight", 1.0)),
-                        # sources=[
-                        #     Source(source.get("contributor", ""), source.get("process", ""))
-                        #     for source in metadata["sources"]
-                        # ],
-                    )
-                )
-
-            # if break_after > 0 and i >= break_after:
-            #     break
+            if (
+                start.prefix == "c"
+                and end.prefix == "c"
+                and rel.prefix == "r"
+                and start.language in lang_filter
+                and end.language in lang_filter
+            ):
+                nodes.add(start)
+                nodes.add(end)
+                relationships.append(rel)
 
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow(["uri:ID", ":LABEL", "name", "language"])
+        writer.writerow([":ID", ":LABEL", "name", "language", "pos"])
 
         for n in nodes:
-            writer.writerow((n.uri, "Concept", n.name, n.language))
+            writer.writerow((n.key, n.label, n.name, n.language, n.pos))
 
     with open(relationships_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {relationships_csv}")
         writer.writerow(
-            [
-                ":START_ID",
-                ":END_ID",
-                ":TYPE",
-                "uri",
-                "dataset",
-                "license",
-                "weight:float",
-            ]
+            [":START_ID", ":END_ID", ":TYPE", "dataset", "license", "weight:float",]
         )
 
         for r in relationships:
             writer.writerow(
-                (
-                    r.start.uri,
-                    r.end.uri,
-                    r.rel_type,
-                    r.uri,
-                    r.dataset,
-                    r.license,
-                    r.weight,
-                )
+                (r.start.key, r.end.key, r.name, r.dataset, r.license, r.weight,)
             )
 
 
