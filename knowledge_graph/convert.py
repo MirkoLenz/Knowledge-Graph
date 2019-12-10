@@ -29,59 +29,59 @@ lang_filter = ["de", "en"]
 # r: ADVERB
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(frozen=True)
 class Node:
     prefix: str
-    name: str
     language: str
+    name: str
     pos: str
 
-    def __init__(self, uri: str):
+    @classmethod
+    def create(cls, uri: str) -> "Node":
         uri = uri.split("/")
 
-        self.prefix = uri[1]
-        self.language = uri[2]
-        self.name = uri[3]
-        self.pos = uri[4] if len(uri) > 4 else None
+        return cls(uri[1], uri[2], uri[3], uri[4] if len(uri) > 4 else None)
 
     @property
     def key(self):
-        return "/".join([self.language, self.name, self.pos])
+        return "/".join(filter(None, (self.language, self.name, self.pos)))
 
     @property
     def label(self):
         return "Concept"
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(frozen=True)
 class Source:
     contributor: str
     process: str
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(frozen=True)
 class Relationship:
     prefix: str
+    name: str
     start: Node
     end: Node
-    name: str
     dataset: str
     license: str
     weight: float
     # sources: List[Source]
 
-    def __init__(self, uri: str, metadata: str, start: Node, end: Node) -> None:
+    @classmethod
+    def create(cls, uri: str, metadata: str, start: Node, end: Node) -> "Relationship":
         uri = uri.split("/")
-
-        self.prefix = uri[1]
-        self.name = uri[2]
-        self.start = start
-        self.end = end
-
         metadata = ast.literal_eval(metadata)
-        self.dataset = metadata.get("dataset")
-        self.license = metadata.get("license")
-        self.weight = float(metadata.get("weight", 1.0))
+
+        return cls(
+            uri[1],
+            uri[2],
+            start,
+            end,
+            metadata.get("dataset"),
+            metadata.get("license"),
+            float(metadata.get("weight", 1.0)),
+        )
 
         # self.sources=[
         #     Source(source.get("contributor", ""), source.get("process", ""))
@@ -95,17 +95,17 @@ class Relationship:
 @click.argument("relationships_csv", default="/var/lib/neo4j/import/relationships.csv")
 # @click.option("break_after", default=0)
 def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
-    nodes = set()
-    relationships = list()
+    nodes = dict()
+    relationships = set()
 
     with gzip.open(conceptnet_csv, "rt") as f:
         rows = csv.reader(f, delimiter="\t")
         print(f"Reading {conceptnet_csv}")
 
         for i, row in enumerate(rows):
-            start = Node(row[2])
-            end = Node(row[3])
-            rel = Relationship(row[1], row[4], start, end)
+            start = Node.create(row[2])
+            end = Node.create(row[3])
+            rel = Relationship.create(row[1], row[4], start, end)
 
             if (
                 start.prefix == "c"
@@ -114,9 +114,40 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
                 and start.language in lang_filter
                 and end.language in lang_filter
             ):
-                nodes.add(start)
-                nodes.add(end)
-                relationships.append(rel)
+                if start.key not in nodes:
+                    nodes[start.key] = start
+
+                if end.key not in nodes:
+                    nodes[end.key] = end
+
+                relationships.add(rel)
+
+                if start.pos:
+                    start_general = nodes.get(start.key) or Node(
+                        start.prefix, start.language, start.name, None
+                    )
+                    rel_start_general = Relationship.create(
+                        row[1], row[4], start_general, end
+                    )
+
+                    nodes[start_general.key] = start_general
+                    relationships.add(rel_start_general)
+
+                if end.pos:
+                    end_general = nodes.get(end.key) or Node(
+                        end.prefix, end.language, end.name, None
+                    )
+                    rel_end_general = Relationship.create(
+                        row[1], row[4], start, end_general
+                    )
+
+                    nodes[end_general] = end_general
+                    relationships.add(rel_end_general)
+
+                if start.pos and end.pos:
+                    relationships.add(
+                        Relationship.create(row[1], row[4], start_general, end_general)
+                    )
 
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
