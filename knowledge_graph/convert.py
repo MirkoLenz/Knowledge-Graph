@@ -154,7 +154,7 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
         print(f"Writing {nodes_csv}")
         writer.writerow([":ID", ":LABEL", "name", "language", "pos"])
 
-        for n in nodes:
+        for n in nodes.values():
             writer.writerow((n.key, n.label, n.name, n.language, n.pos))
 
     with open(relationships_csv, "w") as f:
