@@ -29,7 +29,7 @@ lang_filter = ["de", "en"]
 # r: ADVERB
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class Node:
     prefix: str
     name: str
@@ -37,7 +37,12 @@ class Node:
     pos: str
 
     def __init__(self, uri: str):
-        self.prefix, self.language, self.name, self.pos = uri.split("/")[1:5]
+        uri = uri.split("/")
+
+        self.prefix = uri[1]
+        self.language = uri[2]
+        self.name = uri[3]
+        self.pos = uri[4] if len(uri) > 4 else None
 
     @property
     def key(self):
@@ -48,13 +53,13 @@ class Node:
         return "Concept"
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class Source:
     contributor: str
     process: str
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class Relationship:
     prefix: str
     start: Node
@@ -66,7 +71,10 @@ class Relationship:
     # sources: List[Source]
 
     def __init__(self, uri: str, metadata: str, start: Node, end: Node) -> None:
-        self.prefix, self.name = uri.split("/")[1:3]
+        uri = uri.split("/")
+
+        self.prefix = uri[1]
+        self.name = uri[2]
         self.start = start
         self.end = end
 
