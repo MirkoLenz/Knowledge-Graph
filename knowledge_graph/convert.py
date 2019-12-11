@@ -14,7 +14,14 @@ from typing import List, Dict
 import gzip
 import ast
 import click
-from .uri import split_uri, concept_uri, is_concept, is_relation
+from .uri import (
+    split_uri,
+    concept_uri,
+    is_concept,
+    is_relation,
+    assertion_uri,
+    join_uri,
+)
 
 
 lang_filter = ["de", "en"]
@@ -39,7 +46,7 @@ class Node:
         return cls(uri[1], uri[2])
 
     @property
-    def key(self):
+    def uri(self):
         return concept_uri(self.language, self.name)
 
     @property
@@ -49,7 +56,7 @@ class Node:
 
 @dataclass(frozen=True)
 class Relationship:
-    name: str
+    category: str
     start: Node
     end: Node
     dataset: str
@@ -71,6 +78,11 @@ class Relationship:
             metadata.get("license"),
             float(metadata.get("weight", 1.0)),
         )
+
+    @property
+    def uri(self) -> str:
+        rel_uri = join_uri("r", self.category)
+        return assertion_uri(rel_uri, self.start.uri, self.end.uri)
 
 
 @click.command()
@@ -108,21 +120,21 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow(["key:ID", ":LABEL", "name", "language"])
+        writer.writerow(["uri:ID", ":LABEL", "name", "language"])
 
         for n in nodes:
-            writer.writerow((n.key, n.label, n.name, n.language))
+            writer.writerow((n.uri, n.label, n.name, n.language))
 
     with open(relationships_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {relationships_csv}")
         writer.writerow(
-            [":START_ID", ":END_ID", ":TYPE", "dataset", "license", "weight:float",]
+            [":START_ID", ":END_ID", ":TYPE", "uri", "dataset", "weight:float",]
         )
 
         for r in relationships:
             writer.writerow(
-                (r.start.key, r.end.key, r.name, r.dataset, r.license, r.weight)
+                (r.start.uri, r.end.uri, r.category, r.uri, r.dataset, r.weight)
             )
 
 
