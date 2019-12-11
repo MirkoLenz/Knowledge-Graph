@@ -6,6 +6,9 @@ Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/impor
 NOTE: Currently, URI is exported too which results in duplicate property entries.
 If the terms without the prefix and suffix are unique, one could remove the uri and replace it with the name.
 
+TODO: Node de/n/n is duplicate
+TODO: Loops on one node possible as lang, name, pos not unique in conceptnet
+
 >>> neo4j-admin import --database "concept.db" --nodes "nodes.csv" --relationships "relationships.csv"
 """
 
@@ -17,6 +20,7 @@ from typing import List, Dict
 import gzip
 import ast
 import click
+from . import uri
 
 
 lang_filter = ["de", "en"]
@@ -152,7 +156,7 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow([":ID", ":LABEL", "name", "language", "pos"])
+        writer.writerow(["key:ID", ":LABEL", "name", "language", "pos"])
 
         for n in nodes.values():
             writer.writerow((n.key, n.label, n.name, n.language, n.pos))
