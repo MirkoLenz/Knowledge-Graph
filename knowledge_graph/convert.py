@@ -3,7 +3,7 @@ ConceptNet CSV Dump: https://github.com/commonsense/conceptnet5/wiki/Downloads
 Source Code: https://github.com/tomkdickinson/conceptnet_neo4j
 Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/import-tool/
 
->>> neo4j-admin import --database "concept.db" --nodes "nodes.csv" --relationships "relationships.csv"
+>>> neo4j-admin import --database "concept.db" --nodes "conceptnet-nodes.csv" --relationships "conceptnet-relationships.csv"
 """
 
 import csv
@@ -51,7 +51,11 @@ class Node:
 
     @property
     def label(self):
-        return "Conceptnet"
+        return "Concept"
+
+    @property
+    def source(self):
+        return "conceptnet"
 
 
 @dataclass(frozen=True)
@@ -67,11 +71,11 @@ class Relationship:
     def from_uri(
         cls, uri: str, metadata: str, start: Node, end: Node
     ) -> "Relationship":
-        uri = split_uri(uri)
+        # uri = split_uri(uri)
         metadata = ast.literal_eval(metadata)
 
         return cls(
-            uri[1],
+            uri[3 : len(uri)],
             start,
             end,
             metadata.get("dataset"),
@@ -84,13 +88,21 @@ class Relationship:
         rel_uri = join_uri("r", self.category)
         return assertion_uri(rel_uri, self.start.uri, self.end.uri)
 
+    @property
+    def source(self):
+        return "conceptnet"
+
 
 @click.command()
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
-@click.argument("nodes_csv", default="/var/lib/neo4j/import/nodes.csv")
-@click.argument("relationships_csv", default="/var/lib/neo4j/import/relationships.csv")
-# @click.option("break_after", default=0)
-def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
+@click.argument("nodes_csv", default="/var/lib/neo4j/import/conceptnet-nodes.csv")
+@click.argument(
+    "relationships_csv", default="/var/lib/neo4j/import/conceptnet-relationships.csv"
+)
+@click.option("--debug", is_flag=True)
+def run(
+    conceptnet_csv: str, nodes_csv: str, relationships_csv: str, debug: bool
+) -> None:
     nodes = set()
     relationships = set()
 
@@ -117,24 +129,43 @@ def run(conceptnet_csv: str, nodes_csv: str, relationships_csv: str) -> None:
                     nodes.add(end)
                     relationships.add(relationship)
 
+            if debug and len(nodes) >= 1000:
+                break
+
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow(["uri:ID", ":LABEL", "name", "language"])
+        writer.writerow(("uri:ID", ":LABEL", "name", "language", "source"))
 
         for n in nodes:
-            writer.writerow((n.uri, n.label, n.name, n.language))
+            writer.writerow((n.uri, n.label, n.name, n.language, n.source))
 
     with open(relationships_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {relationships_csv}")
         writer.writerow(
-            [":START_ID", ":END_ID", ":TYPE", "uri", "dataset", "weight:float",]
+            (
+                ":START_ID",
+                ":END_ID",
+                ":TYPE",
+                "uri",
+                "dataset",
+                "weight:float",
+                "source",
+            )
         )
 
         for r in relationships:
             writer.writerow(
-                (r.start.uri, r.end.uri, r.category, r.uri, r.dataset, r.weight)
+                (
+                    r.start.uri,
+                    r.end.uri,
+                    r.category,
+                    r.uri,
+                    r.dataset,
+                    r.weight,
+                    r.source,
+                )
             )
 
 
