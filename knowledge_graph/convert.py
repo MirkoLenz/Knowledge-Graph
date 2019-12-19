@@ -3,7 +3,10 @@ ConceptNet CSV Dump: https://github.com/commonsense/conceptnet5/wiki/Downloads
 Source Code: https://github.com/tomkdickinson/conceptnet_neo4j
 Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/import-tool/
 
->>> neo4j-admin import --database "concept.db" --nodes "conceptnet-nodes.csv" --relationships "conceptnet-relationships.csv"
+>>> neo4j-admin import --nodes "conceptnet-nodes.csv" --relationships "conceptnet-relationships.csv"
+
+Run with Docker: https://neo4j.com/developer/docker-run-neo4j/
+>>> docker run --name recap-neo4j -rm -p7474:7474 -p7687:7687 -d -v /data/knowledge-graph/neo4j/data:/data -v /data/knowledge-graph/neo4j/logs:/logs -v /data/knowledge-graph/neo4j/import:/var/lib/neo4j/import -v $HOME/neo4j/plugins:/plugins --env NEO4J_AUTH=none neo4j
 """
 
 import csv
@@ -95,9 +98,12 @@ class Relationship:
 
 @click.command()
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
-@click.argument("nodes_csv", default="/var/lib/neo4j/import/conceptnet-nodes.csv")
 @click.argument(
-    "relationships_csv", default="/var/lib/neo4j/import/conceptnet-relationships.csv"
+    "nodes_csv", default="/data/knowledge-graph/neo4j/import/conceptnet-nodes.csv"
+)
+@click.argument(
+    "relationships_csv",
+    default="/data/knowledge-graph/neo4j/import/conceptnet-relationships.csv",
 )
 @click.option("--debug", is_flag=True)
 def run(

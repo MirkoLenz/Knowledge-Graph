@@ -10,8 +10,10 @@ NULL values in CSVs: https://github.com/neo4j/neo4j/issues/2521
 
 
 @click.command()
-@click.argument("import_dir", default="/var/lib/neo4j/import")
-@click.argument("database_path", default="/var/lib/neo4j/data/databases/concept.db")
+@click.argument("import_dir", default="/data/knowledge-graph/neo4j/import")
+@click.argument(
+    "database_path", default="/data/knowledge-graph/neo4j/data/databases/graph.db"
+)
 def run(import_dir, database_path):
     database_path = Path(database_path)
     import_dir = Path(import_dir)
