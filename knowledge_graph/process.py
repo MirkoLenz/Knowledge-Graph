@@ -30,9 +30,10 @@ def run(neo4j_url):
     driver = GraphDatabase.driver(neo4j_url)  # auth=("username", "password")
 
     with driver.session() as session:
-        session.run("CREATE CONSTRAINT ON (n:Concept) ASSERT n.uri IS UNIQUE")
-        session.run("CREATE INDEX ON :Concept(name)")
-        session.run("CREATE INDEX ON :Concept(language)")
+        # Currently crashed Neo4j 4.0
+        # session.run("CREATE CONSTRAINT ON (n:Concept) ASSERT n.uri IS UNIQUE")
+        session.run("CREATE INDEX FOR (n:Concept) ON (n.name)")
+        session.run("CREATE INDEX FOR (n:Concept) ON (n.language)")
 
 
 if __name__ == "__main__":
