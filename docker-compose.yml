@@ -1,0 +1,24 @@
+version: "3"
+services:
+  neo4j:
+    image: "neo4j:latest"
+    ports:
+      - 7474:7474
+      - 7473:7473
+      - 7687:7687
+    volumes:
+      - data/neo4j/data:/data
+      - data/neo4j/logs:/logs
+      - data/neo4j/import:/var/lib/neo4j/import
+      - data/neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=none
+      - NEO4J_dbms_connector_bolt_advertised__address=136.199.130.136:7687
+  postgres:
+    image: "postgres:12.1"
+    ports:
+      - 5432:5432
+    volumes:
+      - data/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
