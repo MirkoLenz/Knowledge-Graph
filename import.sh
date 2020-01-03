@@ -7,4 +7,4 @@ docker-compose run neo4j --rm bin/neo4j-admin import --nodes "import/conceptnet-
 docker-compose start neo4j
 
 # DEBUG
-# docker-compose run --rm -it neo4j bash
+# docker-compose run --rm neo4j bash
