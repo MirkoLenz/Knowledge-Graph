@@ -92,17 +92,14 @@ class Relationship:
         return "conceptnet"
 
 
-@click.command()
+@click.command("convert")
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
+@click.argument("nodes_csv", default="data/neo4j/import/conceptnet-nodes.csv")
 @click.argument(
-    "nodes_csv", default="/data/knowledge-graph/neo4j/import/conceptnet-nodes.csv"
-)
-@click.argument(
-    "relationships_csv",
-    default="/data/knowledge-graph/neo4j/import/conceptnet-relationships.csv",
+    "relationships_csv", default="data/neo4j/import/conceptnet-relationships.csv",
 )
 @click.option("--debug", is_flag=True)
-def run(
+def main(
     conceptnet_csv: str, nodes_csv: str, relationships_csv: str, debug: bool
 ) -> None:
     nodes = set()
@@ -172,4 +169,4 @@ def run(
 
 
 if __name__ == "__main__":
-    run()
+    main()
