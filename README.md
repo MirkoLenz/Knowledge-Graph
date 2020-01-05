@@ -1,5 +1,7 @@
 # ReCAP Knowledge Graph
 
+The idea of importing the CSV dump is based on a script by [Tom Dickinson](https://github.com/tomkdickinson/conceptnet_neo4j).
+
 ## Requirements
 
 - Docker and docker-compose.

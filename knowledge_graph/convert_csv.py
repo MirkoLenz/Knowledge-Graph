@@ -1,27 +1,21 @@
-"""
-- ConceptNet CSV Dump: https://github.com/commonsense/conceptnet5/wiki/Downloads
-- Source Code: https://github.com/tomkdickinson/conceptnet_neo4j
-- Import to Neo4j: https://neo4j.com/docs/operations-manual/current/tutorial/import-tool/
-- Run with Docker: https://neo4j.com/developer/docker-run-neo4j/
-"""
-
-import csv
-from pathlib import Path
-from neo4j import GraphDatabase
-from dataclasses import dataclass, field
-from typing import List, Dict
-import gzip
 import ast
+import csv
+import gzip
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List
+
 import click
+from neo4j import GraphDatabase
+
 from .uri import (
-    split_uri,
+    assertion_uri,
     concept_uri,
     is_concept,
     is_relation,
-    assertion_uri,
     join_uri,
+    split_uri,
 )
-
 
 lang_filter = ["de", "en"]
 
@@ -134,7 +128,7 @@ def main(
     with open(nodes_csv, "w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow(("uri:ID", ":LABEL", "name", "language", "source"))
+        writer.writerow((":ID", ":LABEL", "name", "language", "source"))
 
         for n in nodes:
             writer.writerow((n.uri, n.label, n.name, n.language, n.source))
@@ -147,7 +141,7 @@ def main(
                 ":START_ID",
                 ":END_ID",
                 ":TYPE",
-                "uri",
+                # "uri",
                 "dataset",
                 "weight:float",
                 "source",
@@ -160,7 +154,7 @@ def main(
                     r.start.uri,
                     r.end.uri,
                     r.category,
-                    r.uri,
+                    # r.uri,
                     r.dataset,
                     r.weight,
                     r.source,
