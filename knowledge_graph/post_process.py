@@ -13,7 +13,7 @@ import click
 
 @click.command("post-process")
 @click.argument("neo4j_url", default="bolt://localhost:7687")
-def main(neo4j_url):
+def main(neo4j_url: str):
     driver = GraphDatabase.driver(neo4j_url)  # auth=("username", "password")
 
     with driver.session() as session:
