@@ -7,8 +7,8 @@ DELETE n,r
 ```
 """
 
-from neo4j import GraphDatabase
 import click
+from neo4j import GraphDatabase
 
 
 @click.command("post-process")

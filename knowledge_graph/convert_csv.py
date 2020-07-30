@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Dict, List
 
 import click
-from neo4j import GraphDatabase
 
 from .uri import (
     assertion_uri,

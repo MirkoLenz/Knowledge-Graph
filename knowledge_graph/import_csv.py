@@ -1,8 +1,9 @@
-import click
 import subprocess
-from shlex import split
-from pathlib import Path
 import typing as t
+from pathlib import Path
+from shlex import split
+
+import click
 
 
 """
