@@ -16,14 +16,19 @@ from neo4j import GraphDatabase
 
 
 @click.command("post-process")
-@click.argument("neo4j_url", default="bolt://localhost:7687")
-def main(neo4j_url: str):
+def main():
+    neo4j_url = "neo4j://" + os.getenv("NEO4J_URL")
     neo4j_auth = os.getenv("NEO4J_AUTH").split("/", 1)
-    driver = GraphDatabase.driver(neo4j_url, auth=neo4j_auth)
+    print(neo4j_auth)
+    driver = GraphDatabase.driver(
+        neo4j_url,
+        auth=tuple(neo4j_auth),
+        encrypted=False,
+    )
 
     with driver.session() as session:
         session.run("CREATE INDEX FOR (n:Concept) ON (n.name)")
-        session.run("CREATE INDEX FOR (n:Concept) ON (n.uri)")
+        # session.run("CREATE INDEX FOR (n:Concept) ON (n.uri)")
         session.run("CREATE INDEX FOR (n:Concept) ON (n.language)")
 
 
