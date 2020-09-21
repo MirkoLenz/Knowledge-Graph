@@ -8,6 +8,7 @@ authors = ["Mirko Lenz <info@mirko-lenz.de>"]
 python = "^3.7"
 neo4j = "^4.1"
 click = "^7.1"
+python-dotenv = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
