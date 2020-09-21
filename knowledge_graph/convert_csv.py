@@ -80,17 +80,25 @@ class Relationship:
 
 
 @click.command("convert")
+@click.argument("neo4j_import_dir", default="data/neo4j/import/")
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
-@click.argument("nodes_csv", default="data/neo4j/import/conceptnet-nodes.csv")
+@click.argument("nodes_csv", default="conceptnet-nodes.csv")
 @click.argument(
     "relationships_csv",
-    default="data/neo4j/import/conceptnet-relationships.csv",
+    default="conceptnet-relationships.csv",
 )
 @click.option("--debug", is_flag=True)
 def main(
-    conceptnet_csv: str, nodes_csv: str, relationships_csv: str, debug: bool
+    neo4j_import_dir: str,
+    conceptnet_csv: str,
+    nodes_csv: str,
+    relationships_csv: str,
+    debug: bool,
 ) -> None:
-    if not os.access(nodes_csv, os.W_OK) and not os.access(relationships_csv, os.W_OK):
+    nodes_path = Path(neo4j_import_dir, nodes_csv)
+    relationships_path = Path(neo4j_import_dir, relationships_csv)
+
+    if not os.access(neo4j_import_dir, os.W_OK):
         raise RuntimeError("The target directory is not writable.")
 
     nodes = set()
@@ -133,7 +141,7 @@ def main(
             if debug and len(nodes) >= 1000:
                 break
 
-    with open(nodes_csv, "w") as f:
+    with nodes_path.open("w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
         writer.writerow((":ID", ":LABEL", "name", "language", "source"))
@@ -141,7 +149,7 @@ def main(
         for n in nodes:
             writer.writerow((n.uri, n.label, n.name, n.language, n.source))
 
-    with open(relationships_csv, "w") as f:
+    with relationships_path.open("w") as f:
         writer = csv.writer(f)
         print(f"Writing {relationships_csv}")
         writer.writerow(
