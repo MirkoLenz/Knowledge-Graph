@@ -1,7 +1,6 @@
 import subprocess
 import typing as t
 from pathlib import Path
-from shlex import split
 
 import click
 
@@ -29,15 +28,23 @@ def main(nodes, relationships):
     node_imports = import_statement("nodes", nodes)
     relationship_imports = import_statement("relationships", relationships)
 
-    subprocess.run(split("sudo docker-compose stop neo4j"))
-    subprocess.run(split("sudo rm -rf data/neo4j"))
-    subprocess.run(split("sudo mkdir data/neo4j"))
+    subprocess.run(["sudo", "docker-compose", "stop", "neo4j"])
+    subprocess.run(["sudo", "rm", "-rf", "data/neo4j/data"])
+    subprocess.run(["sudo", "mkdir", "data/neo4j/data"])
     subprocess.run(
-        ["docker-compose", "run", "neo4j", "--rm", "bin/neo4j-admin", "import",]
+        [
+            "sudo",
+            "docker-compose",
+            "run",
+            "--rm",
+            "neo4j",
+            "bin/neo4j-admin",
+            "import",
+        ]
         + node_imports
         + relationship_imports
     )
-    subprocess.run(split("docker-compose start neo4j"))
+    subprocess.run(["sudo", "docker-compose", "start", "neo4j"])
 
 
 if __name__ == "__main__":
