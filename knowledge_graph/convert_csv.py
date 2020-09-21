@@ -3,7 +3,7 @@ import csv
 import gzip
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Mapping
 
 import click
 
@@ -55,24 +55,17 @@ class Relationship:
     category: str
     start: Node
     end: Node
-    dataset: str
-    license: str
     weight: float
 
     @classmethod
     def from_uri(
-        cls, uri: str, metadata: str, start: Node, end: Node
+        cls, uri: str, start: Node, end: Node, weight: float
     ) -> "Relationship":
-        # uri = split_uri(uri)
-        metadata = ast.literal_eval(metadata)
-
         return cls(
             uri[3 : len(uri)],
             start,
             end,
-            metadata.get("dataset"),
-            metadata.get("license"),
-            float(metadata.get("weight", 1.0)),
+            weight,
         )
 
     @property
@@ -89,14 +82,15 @@ class Relationship:
 @click.argument("conceptnet_csv", default="data/conceptnet-assertions-5.7.0.csv.gz")
 @click.argument("nodes_csv", default="data/neo4j/import/conceptnet-nodes.csv")
 @click.argument(
-    "relationships_csv", default="data/neo4j/import/conceptnet-relationships.csv",
+    "relationships_csv",
+    default="data/neo4j/import/conceptnet-relationships.csv",
 )
 @click.option("--debug", is_flag=True)
 def main(
     conceptnet_csv: str, nodes_csv: str, relationships_csv: str, debug: bool
 ) -> None:
     nodes = set()
-    relationships = set()
+    relationships: Dict[str, Relationship] = {}
 
     with gzip.open(conceptnet_csv, "rt") as f:
         rows = csv.reader(f, delimiter="\t")
@@ -116,10 +110,21 @@ def main(
                     and end.language in lang_filter
                     and start != end
                 ):
-                    relationship = Relationship.from_uri(rel_uri, row[4], start, end)
                     nodes.add(start)
                     nodes.add(end)
-                    relationships.add(relationship)
+
+                    rel_metadata: Mapping[str, str] = ast.literal_eval(row[4])
+                    weight = float(rel_metadata.get("weight", 1.0))
+                    rel = Relationship.from_uri(rel_uri, start, end, weight)
+
+                    # Relationships can occur more then once,
+                    # if two different datasets yield in the same relationsip.
+                    # We are going to merge them in the following.
+                    if rel.uri in relationships.keys():
+                        merged_weight = relationships[rel.uri].weight + rel.weight
+                        rel = Relationship.from_uri(rel_uri, start, end, merged_weight)
+
+                    relationships[rel.uri] = rel
 
             if debug and len(nodes) >= 1000:
                 break
@@ -141,20 +146,20 @@ def main(
                 ":END_ID",
                 ":TYPE",
                 # "uri",
-                "dataset",
+                # "dataset",
                 "weight:float",
                 "source",
             )
         )
 
-        for r in relationships:
+        for r in relationships.values():
             writer.writerow(
                 (
                     r.start.uri,
                     r.end.uri,
                     r.category,
                     # r.uri,
-                    r.dataset,
+                    # r.dataset,
                     r.weight,
                     r.source,
                 )
