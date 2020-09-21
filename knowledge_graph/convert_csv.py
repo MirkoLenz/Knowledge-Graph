@@ -2,6 +2,7 @@ import ast
 import csv
 import gzip
 from dataclasses import dataclass, field
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Mapping
 
@@ -89,6 +90,9 @@ class Relationship:
 def main(
     conceptnet_csv: str, nodes_csv: str, relationships_csv: str, debug: bool
 ) -> None:
+    if not os.access(nodes_csv, os.W_OK) and not os.access(relationships_csv, os.W_OK):
+        raise RuntimeError("The target directory is not writable.")
+
     nodes = set()
     relationships: Dict[str, Relationship] = {}
 
