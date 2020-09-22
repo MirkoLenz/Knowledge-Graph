@@ -118,7 +118,13 @@ def main(
     relationships_path = Path(neo4j_import_dir, relationships_csv)
 
     if not os.access(neo4j_import_dir, os.W_OK):
-        chown_cmd = ["sudo", "chown", "-R", "$USER.$USER", neo4j_import_dir]
+        chown_cmd = [
+            "sudo",
+            "chown",
+            "-R",
+            f"{os.getenv('USER')}.{os.getenv('USER')}",
+            neo4j_import_dir,
+        ]
 
         click.echo(f"The target directory {neo4j_import_dir} is not writable.")
         click.echo(f"Fix it by executing '{' '.join(chown_cmd)}'? [yn] ", nl=False)
