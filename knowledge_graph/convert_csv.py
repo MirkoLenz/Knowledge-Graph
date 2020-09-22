@@ -1,8 +1,11 @@
 import ast
 import csv
 import gzip
-from dataclasses import dataclass, field
 import os
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from os import chown
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -115,7 +118,18 @@ def main(
     relationships_path = Path(neo4j_import_dir, relationships_csv)
 
     if not os.access(neo4j_import_dir, os.W_OK):
-        raise RuntimeError("The target directory is not writable.")
+        chown_cmd = ["sudo", "chown", "-R", "$USER.$USER", neo4j_import_dir]
+
+        click.echo(f"The target directory {neo4j_import_dir} is not writable.")
+        click.echo(f"Fix it by executing '{' '.join(chown_cmd)}'? [yn] ", nl=False)
+        char = click.getchar()
+        click.echo()
+
+        if char == "y":
+            subprocess.run(chown_cmd)
+        else:
+            click.echo("The target directory is not writable.")
+            sys.exit()
 
     nodes = set()
     relationships: Dict[str, Relationship] = {}
