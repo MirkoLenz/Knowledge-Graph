@@ -46,13 +46,13 @@ class Node:
 
     @classmethod
     def from_uri(cls, uri: str) -> "Node":
-        uri = split_uri(uri)
+        uri_parts = split_uri(uri)
         pos = None
 
-        if len(uri) > 3:
-            pos = pos_replacements.get(uri[3])
+        if len(uri_parts) > 3:
+            pos = pos_replacements.get(uri_parts[3])
 
-        return cls(uri[1], uri[2], pos)
+        return cls(uri_parts[1], uri_parts[2], pos)
 
     @property
     def uri(self):
@@ -168,7 +168,7 @@ def main(
 
                     relationships[rel.uri] = rel
 
-            if debug and len(nodes) >= 1000:
+            if debug and len(nodes) >= 10000:
                 break
 
     with nodes_path.open("w") as f:

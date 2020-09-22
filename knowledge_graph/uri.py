@@ -90,10 +90,11 @@ def concept_uri(lang, text, *more):
     """
     assert " " not in text, "%r is not in normalized form" % text
     if len(more) > 0:
-        if len(more[0]) != 1:
-            # We misparsed a part of speech; everything after the text is
-            # probably junk
-            more = []
+        # TODO: I am using longer names for pos tags, thus this is irrelevant!
+        # if len(more[0]) != 1:
+        #     # We misparsed a part of speech; everything after the text is
+        #     # probably junk
+        #     more = []
         for dis1 in more[1:]:
             assert " " not in dis1, "%r is not in normalized form" % dis1
 
