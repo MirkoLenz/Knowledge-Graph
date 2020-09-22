@@ -28,8 +28,8 @@ def main():
 
     with driver.session() as session:
         session.run("CREATE INDEX FOR (n:Concept) ON (n.name)")
-        # session.run("CREATE INDEX FOR (n:Concept) ON (n.uri)")
         session.run("CREATE INDEX FOR (n:Concept) ON (n.language)")
+        session.run("CREATE INDEX FOR (n:Concept) ON (n.pos)")
 
 
 if __name__ == "__main__":

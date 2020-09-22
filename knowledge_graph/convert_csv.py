@@ -4,7 +4,7 @@ import gzip
 from dataclasses import dataclass, field
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Mapping
+from typing import Any, Dict, List, Mapping, Optional
 
 import click
 
@@ -31,15 +31,20 @@ lang_filter = ["de", "en"]
 class Node:
     language: str
     name: str
+    pos: Optional[str]
 
     @classmethod
     def from_uri(cls, uri: str) -> "Node":
         uri = split_uri(uri)
+        pos = uri[3] if len(uri) > 3 else None
 
-        return cls(uri[1], uri[2])
+        return cls(uri[1], uri[2], pos)
 
     @property
     def uri(self):
+        if self.pos:
+            return concept_uri(self.language, self.name, self.pos)
+
         return concept_uri(self.language, self.name)
 
     @property
@@ -144,10 +149,10 @@ def main(
     with nodes_path.open("w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow((":ID", ":LABEL", "name", "language", "source"))
+        writer.writerow((":ID", ":LABEL", "name", "language", "pos", "source"))
 
         for n in nodes:
-            writer.writerow((n.uri, n.label, n.name, n.language, n.source))
+            writer.writerow((n.uri, n.label, n.name, n.language, n.pos, n.source))
 
     with relationships_path.open("w") as f:
         writer = csv.writer(f)
