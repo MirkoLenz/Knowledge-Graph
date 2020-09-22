@@ -47,7 +47,7 @@ class Node:
         pos = None
 
         if len(uri) > 3:
-            pos = pos_replacements[uri[3]]
+            pos = pos_replacements.get(uri[3])
 
         return cls(uri[1], uri[2], pos)
 
