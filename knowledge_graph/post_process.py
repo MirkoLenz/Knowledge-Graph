@@ -19,7 +19,6 @@ from neo4j import GraphDatabase
 def main():
     neo4j_url = "neo4j://" + os.getenv("NEO4J_URL")
     neo4j_auth = os.getenv("NEO4J_AUTH").split("/", 1)
-    print(neo4j_auth)
     driver = GraphDatabase.driver(
         neo4j_url,
         auth=tuple(neo4j_auth),
