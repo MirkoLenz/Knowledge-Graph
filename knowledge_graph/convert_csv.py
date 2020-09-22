@@ -26,6 +26,14 @@ lang_filter = ["de", "en"]
 # s: ADJECTIVE SATELLITE
 # r: ADVERB
 
+pos_replacements = {
+    "n": "noun",
+    "v": "verb",
+    "a": "adjective",
+    "s": "adjective",  # satellite
+    "r": "adverb",
+}
+
 
 @dataclass(frozen=True)
 class Node:
@@ -36,7 +44,10 @@ class Node:
     @classmethod
     def from_uri(cls, uri: str) -> "Node":
         uri = split_uri(uri)
-        pos = uri[3] if len(uri) > 3 else None
+        pos = None
+
+        if len(uri) > 3:
+            pos = pos_replacements[uri[3]]
 
         return cls(uri[1], uri[2], pos)
 
