@@ -37,6 +37,8 @@ pos_replacements = {
     "r": "adverb",
 }
 
+pos_default = "other"
+
 
 @dataclass(frozen=True)
 class Node:
@@ -47,10 +49,10 @@ class Node:
     @classmethod
     def from_uri(cls, uri: str) -> "Node":
         uri_parts = split_uri(uri)
-        pos = None
+        pos = pos_default
 
         if len(uri_parts) > 3:
-            pos = pos_replacements.get(uri_parts[3])
+            pos = pos_replacements.get(uri_parts[3], pos_default)
 
         return cls(uri_parts[1], uri_parts[2], pos)
 
@@ -117,25 +119,7 @@ def main(
     nodes_path = Path(neo4j_import_dir, nodes_csv)
     relationships_path = Path(neo4j_import_dir, relationships_csv)
 
-    if not os.access(neo4j_import_dir, os.W_OK):
-        chown_cmd = [
-            "sudo",
-            "chown",
-            "-R",
-            f"{os.getenv('USER')}.{os.getenv('USER')}",
-            neo4j_import_dir,
-        ]
-
-        click.echo(f"The target directory {neo4j_import_dir} is not writable.")
-        click.echo(f"Fix it by executing '{' '.join(chown_cmd)}'? [yn] ", nl=False)
-        char = click.getchar()
-        click.echo()
-
-        if char == "y":
-            subprocess.run(chown_cmd)
-        else:
-            click.echo("The target directory is not writable.")
-            sys.exit()
+    _check_access(neo4j_import_dir, os.W_OK)
 
     nodes = set()
     relationships: Dict[str, Relationship] = {}
@@ -212,6 +196,28 @@ def main(
                     r.source,
                 )
             )
+
+
+def _check_access(dir: str, mode: int) -> None:
+    if not os.access(dir, mode):
+        chown_cmd = [
+            "sudo",
+            "chown",
+            "-R",
+            f"{os.getenv('USER')}.{os.getenv('USER')}",
+            dir,
+        ]
+
+        click.echo(f"The target directory {dir} is not writable.")
+        click.echo(f"Fix it by executing '{' '.join(chown_cmd)}'? [yn] ", nl=False)
+        char = click.getchar()
+        click.echo()
+
+        if char == "y":
+            subprocess.run(chown_cmd)
+        else:
+            click.echo("The target directory is not writable.")
+            sys.exit()
 
 
 if __name__ == "__main__":
