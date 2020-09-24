@@ -29,6 +29,7 @@ def main():
         session.run("CREATE INDEX FOR (n:Concept) ON (n.name)")
         session.run("CREATE INDEX FOR (n:Concept) ON (n.language)")
         session.run("CREATE INDEX FOR (n:Concept) ON (n.pos)")
+        session.run("CREATE INDEX FOR (n:Concept) ON (n.uri)")
 
 
 if __name__ == "__main__":
