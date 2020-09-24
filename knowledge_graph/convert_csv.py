@@ -58,10 +58,10 @@ class Node:
 
     @property
     def uri(self):
-        if self.pos:
-            return concept_uri(self.language, self.name, self.pos)
+        if self.pos == pos_default:
+            return concept_uri(self.language, self.name)
 
-        return concept_uri(self.language, self.name)
+        return concept_uri(self.language, self.name, self.pos)
 
     @property
     def label(self):
@@ -179,7 +179,7 @@ def main(
                 ":TYPE",
                 "uri",
                 # "dataset",
-                "weight:float",
+                "weight:double",
                 "source",
             )
         )
