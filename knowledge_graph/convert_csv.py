@@ -164,7 +164,7 @@ def main(
     with nodes_path.open("w") as f:
         writer = csv.writer(f)
         print(f"Writing {nodes_csv}")
-        writer.writerow((":ID", ":LABEL", "name", "language", "pos", "source"))
+        writer.writerow(("uri:ID", ":LABEL", "name", "language", "pos", "source"))
 
         for n in nodes:
             writer.writerow((n.uri, n.label, n.name, n.language, n.pos, n.source))
@@ -177,7 +177,7 @@ def main(
                 ":START_ID",
                 ":END_ID",
                 ":TYPE",
-                # "uri",
+                "uri",
                 # "dataset",
                 "weight:float",
                 "source",
@@ -190,7 +190,7 @@ def main(
                     r.start.uri,
                     r.end.uri,
                     r.category,
-                    # r.uri,
+                    r.uri,
                     # r.dataset,
                     r.weight,
                     r.source,
