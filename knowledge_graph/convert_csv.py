@@ -151,12 +151,13 @@ def main(
 
                     # Relationships can occur more then once,
                     # if two different datasets yield in the same relationsip.
-                    # We are going to merge them in the following.
+                    # They are merged by combining their weights.
                     if rel.uri in relationships.keys():
                         merged_weight = relationships[rel.uri].weight + rel.weight
                         rel = Relationship.from_uri(rel_uri, start, end, merged_weight)
 
-                    relationships[rel.uri] = rel
+                    if not rel.category.startswith("dbpedia/"):
+                        relationships[rel.uri] = rel
 
             if debug and len(nodes) >= 10000:
                 break
